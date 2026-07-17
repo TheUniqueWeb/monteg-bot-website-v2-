@@ -246,6 +246,7 @@ export default function ProfileView({ user, submissions, withdrawals, onUserUpda
           </div>
         </div>
       </div>
+
     </div>
   );
 }

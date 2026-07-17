@@ -900,6 +900,27 @@ app.get("/api/user/:userId/withdrawals", async (req, res) => {
   }
 });
 
+// Get top 10 earners publicly
+app.get("/api/top-earners", async (req, res) => {
+  try {
+    const users = await DB.getUsers();
+    const topEarners = [...users]
+      .sort((a, b) => b.total_balance - a.total_balance)
+      .slice(0, 10)
+      .map(u => ({
+        id: u.id,
+        full_name: u.full_name,
+        username: u.username,
+        total_balance: u.total_balance,
+        profile_photo_url: u.profile_photo_url,
+        join_date: u.join_date
+      }));
+    res.json(topEarners);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // -----------------------------------------------------------------------------
 // ADMIN MANAGEMENT ENDPOINTS
 // -----------------------------------------------------------------------------

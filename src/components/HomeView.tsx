@@ -1,6 +1,36 @@
 import React, { useState, useEffect } from "react";
 import { User, Banner, AppConfig } from "../types";
-import { Tv, ClipboardList, Users, Wallet, Headphones, ChevronLeft, ChevronRight, MessageCircle, Star, Sparkles } from "lucide-react";
+import { Tv, ClipboardList, Users, Wallet, Headphones, ChevronLeft, ChevronRight, MessageCircle, Star, Sparkles, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
+import TopEarners from "./TopEarners";
+
+interface Tier {
+  name: string;
+  minBalance: number;
+  commission: string;
+  colorClass: string;
+  badgeBg: string;
+  textColor: string;
+  nextTier?: string;
+  nextMin?: number;
+}
+
+const TIERS: Tier[] = [
+  { name: "Bronze", minBalance: 0, commission: "5%", colorClass: "from-amber-700 via-amber-800 to-amber-900 border-amber-600/40 shadow-amber-900/10", badgeBg: "bg-amber-500/20 text-amber-300", textColor: "text-amber-200", nextTier: "Silver", nextMin: 10 },
+  { name: "Silver", minBalance: 10, commission: "7%", colorClass: "from-slate-600 via-slate-700 to-slate-800 border-slate-500/40 shadow-slate-900/10", badgeBg: "bg-slate-500/20 text-slate-300", textColor: "text-slate-200", nextTier: "Gold", nextMin: 50 },
+  { name: "Gold", minBalance: 50, commission: "10%", colorClass: "from-yellow-600 via-amber-600 to-yellow-700 border-yellow-500/40 shadow-yellow-500/10", badgeBg: "bg-yellow-500/20 text-yellow-300", textColor: "text-yellow-100", nextTier: "Platinum", nextMin: 150 },
+  { name: "Platinum", minBalance: 150, commission: "12%", colorClass: "from-teal-600 via-cyan-700 to-blue-700 border-teal-500/40 shadow-teal-500/10", badgeBg: "bg-teal-500/20 text-teal-300", textColor: "text-teal-200", nextTier: "Diamond", nextMin: 300 },
+  { name: "Diamond", minBalance: 300, commission: "15%", colorClass: "from-indigo-600 via-purple-700 to-pink-700 border-indigo-500/40 shadow-indigo-500/10", badgeBg: "bg-indigo-500/20 text-indigo-300", textColor: "text-indigo-200", nextTier: "Pro", nextMin: 500 },
+  { name: "Pro", minBalance: 500, commission: "20%", colorClass: "from-slate-900 via-slate-950 to-slate-900 border-yellow-500/30 shadow-slate-950/20", badgeBg: "bg-yellow-500/20 text-yellow-400", textColor: "text-yellow-100" }
+];
+
+function getTier(balance: number): Tier {
+  for (let i = TIERS.length - 1; i >= 0; i--) {
+    if (balance >= TIERS[i].minBalance) {
+      return TIERS[i];
+    }
+  }
+  return TIERS[0];
+}
 
 interface HomeViewProps {
   user: User;
@@ -11,6 +41,7 @@ interface HomeViewProps {
 
 export default function HomeView({ user, banners, config, setActiveTab }: HomeViewProps) {
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [showRates, setShowRates] = useState(false);
 
   // Auto-slide banners every 5 seconds
   useEffect(() => {
@@ -120,6 +151,106 @@ export default function HomeView({ user, banners, config, setActiveTab }: HomeVi
         </div>
       </div>
 
+      {/* Dynamic Membership Level Card */}
+      <div className={`relative rounded-3xl p-5 bg-gradient-to-br text-white shadow-xl border overflow-hidden transition-all duration-300 ${getTier(user.total_balance).colorClass}`}>
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-xl pointer-events-none" />
+        <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-black/10 rounded-full blur-lg pointer-events-none" />
+        
+        <div className="relative z-10 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="p-1.5 bg-white/10 rounded-xl backdrop-blur-xs border border-white/10">
+                <ShieldCheck className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <span className={`text-[9px] font-black tracking-widest uppercase opacity-75 ${getTier(user.total_balance).textColor}`}>
+                  Publisher Membership
+                </span>
+                <h3 className="text-sm font-black tracking-tight flex items-center space-x-1.5">
+                  <span>{getTier(user.total_balance).name} Level</span>
+                  <span className={`text-[8px] font-black px-2 py-0.5 rounded-full ${getTier(user.total_balance).badgeBg}`}>
+                    {getTier(user.total_balance).commission} Refer Comm
+                  </span>
+                </h3>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => setShowRates(!showRates)}
+              className="text-[9px] font-black uppercase tracking-widest bg-white/10 hover:bg-white/15 px-2.5 py-1.5 rounded-lg border border-white/10 transition-all flex items-center space-x-1 cursor-pointer select-none"
+            >
+              <span>Rates</span>
+              {showRates ? <ChevronUp className="w-2.5 h-2.5" /> : <ChevronDown className="w-2.5 h-2.5" />}
+            </button>
+          </div>
+
+          {/* Card Info Details */}
+          <div className="flex justify-between items-end">
+            <div className="space-y-0.5">
+              <p className="text-[9px] uppercase tracking-wider text-white/60 font-bold">Account Holder</p>
+              <p className="text-xs font-black tracking-tight">{user.full_name}</p>
+            </div>
+            <div className="text-right space-y-0.5">
+              <p className="text-[9px] uppercase tracking-wider text-white/60 font-bold">Mobile</p>
+              <p className="text-xs font-mono font-bold">{user.mobile || "Unlinked"}</p>
+            </div>
+          </div>
+
+          {/* Progress Section to next level */}
+          {getTier(user.total_balance).nextTier && getTier(user.total_balance).nextMin && (
+            <div className="space-y-1.5 pt-1 border-t border-white/10">
+              <div className="flex justify-between text-[9px] font-bold">
+                <span className="opacity-85">Next Level: {getTier(user.total_balance).nextTier}</span>
+                <span className="opacity-95">৳{user.total_balance.toFixed(2)} / ৳{getTier(user.total_balance).nextMin?.toFixed(2)}</span>
+              </div>
+              <div className="w-full h-2 bg-black/25 rounded-full overflow-hidden border border-white/5">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-400 to-indigo-300 rounded-full transition-all duration-1000"
+                  style={{ width: `${Math.min(100, Math.max(0, (user.total_balance / (getTier(user.total_balance).nextMin || 1)) * 100))}%` }}
+                />
+              </div>
+              <p className="text-[8.5px] text-white/70 text-right leading-tight font-medium">
+                Earn ৳{((getTier(user.total_balance).nextMin || 0) - user.total_balance).toFixed(2)} more to auto-unlock high commission bonuses!
+              </p>
+            </div>
+          )}
+
+          {/* Expanded Rates and Commission list (সবগুলো কমিশন রয়েছে) */}
+          {showRates && (
+            <div className="pt-3 border-t border-white/10 space-y-2 text-slate-100 animate-slide-in">
+              <p className="text-[9.5px] font-black uppercase tracking-wider text-blue-300">
+                ⭐ Level commission program details (সবগুলোতে কমিশন রয়েছে):
+              </p>
+              <div className="grid grid-cols-2 gap-2 text-[9px]">
+                {TIERS.map((t) => {
+                  const isCurrent = t.name === getTier(user.total_balance).name;
+                  return (
+                    <div 
+                      key={t.name} 
+                      className={`p-2 rounded-xl border flex items-center justify-between ${
+                        isCurrent 
+                          ? "bg-white/20 border-white/25 text-white font-black animate-pulse" 
+                          : "bg-black/15 border-white/5 text-white/80"
+                      }`}
+                    >
+                      <span className="flex items-center space-x-1">
+                        {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1" />}
+                        <span>{t.name}</span>
+                      </span>
+                      <span>{t.commission}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-[8px] text-white/60 text-center font-bold">
+                * Rates apply automatically to all earnings & task referrals.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* 3. Interactive Image Slider */}
       {banners.length > 0 && (
         <div className="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 group border border-slate-200/50 shadow-xs">
@@ -218,6 +349,9 @@ export default function HomeView({ user, banners, config, setActiveTab }: HomeVi
           );
         })}
       </div>
+
+      {/* Top Earners Component */}
+      <TopEarners />
 
       {/* 5. Support CTA Banner */}
       <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex items-center justify-between relative overflow-hidden shadow-xs">
