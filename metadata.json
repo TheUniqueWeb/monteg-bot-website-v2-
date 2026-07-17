@@ -1,0 +1,6 @@
+{
+  "name": "Monteg Bot App Website",
+  "description": "A high-performance earning platform featuring ads, tasks, referrals, withdrawals, and an advanced admin dashboard with Telegram Web App integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
